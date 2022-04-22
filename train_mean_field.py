@@ -83,7 +83,7 @@ if __name__ == '__main__':
         # make initial state
         state = {'C' : deepcopy(C), 'J': torch.zeros_like(C), 'P': torch.zeros_like(C)}
         print(format_params(params))
-        state, loss_curve = train_mean_field_SGD(args.n_steps, state, K, alpha_fn, beta_fn, batch_fn)
+        state, loss_curve = train_mean_field_SGD(args.n_steps, state, lambda_f, alpha_fn, beta_fn, batch_fn)
         # update dict with loss curves
         loss_curves[tuple(params.values())] = loss_curve
 
