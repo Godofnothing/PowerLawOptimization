@@ -1,6 +1,7 @@
 import torch 
 
 from torchvision.datasets import MNIST
+from sklearn.model_selection import train_test_split
 
 
 def NTK_2_layer(X, sigma_w=1, sigma_b=1):
@@ -26,11 +27,16 @@ def NTK_2_layer(X, sigma_w=1, sigma_b=1):
 def generate_mnist_ntk_data(size: int, data_root: str = './data'):
     # get dataset
     train_dataset = MNIST(root=data_root, train=True, download=True)
-    # generate rand size samples
-    rand_idx = torch.randperm(60000)[:size]
+    # get subset of uniformly distributed between classes digits
+    train_ids, *other = train_test_split(
+        range(60000), 
+        stratify=train_dataset.targets,
+        shuffle=True, 
+        train_size=size
+    )
     # select samples
-    X = train_dataset.data[rand_idx].reshape(-1, 28 * 28).to(torch.float32)
-    y = train_dataset.targets[rand_idx].to(torch.float32)
+    X = train_dataset.data[train_ids].reshape(-1, 28 * 28).to(torch.float32)
+    y = train_dataset.targets[train_ids].to(torch.float32)
     # normalize
     X_mean, X_std = X.mean(), X.std()
     X = (X - X_mean) / X_std

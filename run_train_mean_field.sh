@@ -9,13 +9,14 @@ python train_mean_field.py \
     --kappa 3.0 \
     \
     --sched constant \
-    --lr 0.001 0.003 0.01 0.03 0.1 0.3 1.0 \
-    --momentum 0.0 0.5 0.7 0.9 0.95 0.99 \
+    --lr 0.250 0.325 0.400 0.475 0.550 0.625 0.700 0.775 0.850 0.925 1.000 \
+    --momentum -0.5 -0.4 -0.3 -0.2 -0.1 0.0 0.1 0.2 0.3 0.4 0.5 \
     --a 1.0 \
     --b 1.0 \
     \
-    --n_steps 10000 \
-    --batch_size 1 3 10 30 100 300 1000 \
+    --n_steps 30000 \
+    --batch_size 1 \
     \
-    --save_dir output/mean_field/sgd/constant_lr/N=1000/nu=1.5/kappa=3.0 \
-    
+    --aggr_type prod \
+    \
+    --save_dir output/mean_field/negative_momenta_2d/N=1000/synthetic/nu=1.5/kappa=3.0 \

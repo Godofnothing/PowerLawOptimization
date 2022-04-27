@@ -26,6 +26,9 @@ def parse_args():
     # Training params
     parser.add_argument('--n_steps', default=10000, type=int)
     parser.add_argument('--batch_size', nargs='+', default=[10], type=int)
+    parser.add_argument('--workers', default=8, type=int)
+    # Iteration type
+    parser.add_argument('--aggr_type', default='prod', choices=['prod', 'zip'], type=str)
     # Save params
     parser.add_argument('--save_dir',  type=str, default='./output')
 
@@ -45,6 +48,27 @@ if __name__ == '__main__':
     args = parse_args()
     # get device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # limit num workers
+    torch.set_num_threads(args.workers)
+    # create aggregation
+    if args.aggr_type == 'zip':
+        n_iters = max(len(args.batch_size), len(args.lr), len(args.momentum))
+        if len(args.batch_size) > 1:
+            assert len(args.batch_size) == n_iters
+        else:
+            args.batch_size = (args.batch_size, ) * n_iters
+        if len(args.lr) > 1:
+            assert len(args.lr) == n_iters
+        else:
+            args.lr = (args.lr, ) * n_iters
+        if len(args.momentum) > 1:
+            assert len(args.momentum) == n_iters
+        else:
+            args.momentum = (args.momentum, ) * n_iters
+
+        aggregator = zip
+    else:
+        aggregator = itertools.product
     if args.dataset == 'synthetic':
         # generate data
         K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu)
