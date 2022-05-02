@@ -24,7 +24,7 @@ def NTK_2_layer(X, sigma_w=1, sigma_b=1):
     return Theta_2
 
 
-def generate_mnist_ntk_data(size: int, data_root: str = './data'):
+def generate_mnist_ntk_data(size: int, data_root: str = './data', normalize_ntk: bool = True):
     # get dataset
     train_dataset = MNIST(root=data_root, train=True, download=True)
     # get subset of uniformly distributed between classes digits
@@ -42,8 +42,9 @@ def generate_mnist_ntk_data(size: int, data_root: str = './data'):
     X = (X - X_mean) / X_std
     # get NTK
     K = NTK_2_layer(X)
-    # renormalize NTK
-    mult_factor = size / torch.linalg.eigvalsh(K).max()
-    K *= mult_factor
+    if normalize_ntk:
+        # renormalize NTK
+        mult_factor = size / torch.linalg.eigvalsh(K).max()
+        K *= mult_factor
     # return data
     return K, y

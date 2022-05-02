@@ -10,10 +10,11 @@ def train_step(
     targets: torch.Tensor,
     optimizer : torch.optim.Optimizer
 ):
+    model.train()
     # get model output
     outputs = model(inputs).squeeze(-1)
     # compute loss
-    loss = F.mse_loss(outputs, targets)
+    loss = 0.5 * F.mse_loss(outputs, targets)
     # make gradient step  
     optimizer.zero_grad()
     loss.backward()
@@ -29,10 +30,11 @@ def val_step(
     inputs: torch.Tensor,
     targets: torch.Tensor
 ):
+    model.eval()
     # get model output
     outputs = model(inputs).squeeze(-1)
     # compute loss
-    loss = F.mse_loss(outputs, targets)
+    loss = 0.5 * F.mse_loss(outputs, targets)
     # compute acc
     acc = torch.sum(torch.round(outputs) == targets) / len(inputs)
     return loss, acc

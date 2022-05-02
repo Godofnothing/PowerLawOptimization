@@ -4,7 +4,7 @@ import argparse
 import itertools
 
 from copy import deepcopy
-from training import train_mean_field_SGD
+from training import train_full_SGD
 from datasets import generate_synthetic_data, generate_mnist_ntk_data
 from schedules import JacobiScheduleA, JacobiScheduleB
 
@@ -77,12 +77,12 @@ if __name__ == '__main__':
         # generate data
         K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)
     K, d_f = K.to(device), d_f.to(device)
-    # get normalized spectrum
+    # get eigendecomposition
     lambda_f, U = torch.linalg.eigh(K)
-    # get normalized spectrum
-    lambda_f /= lambda_f.max()
+    # normalize so that spectrum is in range [0, 1]
+    K /= lambda_f.max()
     # covariances
-    C = torch.diag(U.T @ torch.outer(d_f, d_f) @ U)
+    C = torch.outer(d_f, d_f)
     # make experiment dir if needed
     os.makedirs(f'{args.save_dir}', exist_ok=True)
 
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         # make initial state
         state = {'C' : deepcopy(C), 'J': torch.zeros_like(C), 'P': torch.zeros_like(C)}
         print(format_params(params))
-        state, loss_curve = train_mean_field_SGD(args.n_steps, state, lambda_f, alpha_fn, beta_fn, batch_fn)
+        state, loss_curve = train_full_SGD(args.n_steps, state, K, alpha_fn, beta_fn, batch_fn)
         # update dict with loss curves
         loss_curves[tuple(params.values())] = loss_curve
 

@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument('--N', default=1000, type=int)
     parser.add_argument('--nu', default=1.0, type=float)
     parser.add_argument('--kappa', default=1.0, type=float)
+    parser.add_argument('--lambda_min', default=0.0, type=float)
     # Optimizer
     parser.add_argument('--opt', default='sgd', type=str)
     parser.add_argument('--sched', default='constant', type=str)
@@ -77,7 +78,7 @@ if __name__ == '__main__':
 
     if args.dataset == 'synthetic':
         # generate data
-        K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu)
+        K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu, lambda_min=args.lambda_min)
     elif args.dataset == 'mnist':
         # generate data
         K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)

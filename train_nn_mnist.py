@@ -5,9 +5,25 @@ import itertools
 
 from torchvision.datasets import MNIST
 from sklearn.model_selection import train_test_split
+from functorch import make_functional, vmap, jacrev
 
 from models.mlp import NTKTwoLayerMLP
 from training import train
+
+
+def empirical_ntk(fnet_single, params, x1, x2):
+    # Compute J(x1)
+    jac1 = vmap(jacrev(fnet_single), (None, 0))(params, x1)
+    jac1 = [j.flatten(2) for j in jac1]
+    
+    # Compute J(x2)
+    jac2 = vmap(jacrev(fnet_single), (None, 0))(params, x2)
+    jac2 = [j.flatten(2) for j in jac2]
+    
+    # Compute J(x1) @ J(x2).T
+    result = torch.stack([torch.einsum('Naf,Mbf->NMab', j1, j2) for j1, j2 in zip(jac1, jac2)])
+    result = result.sum(0)
+    return result
 
 
 def parse_args():
@@ -71,7 +87,7 @@ if __name__ == '__main__':
     train_inputs, train_targets, val_inputs, val_targets = \
         train_inputs.to(device), train_targets.to(device), val_inputs.to(device), val_targets.to(device)
     # make experiment dir if needed
-    os.makedirs(f'{args.save_dir}', exist_ok=True)    
+    os.makedirs(f'{args.save_dir}', exist_ok=True)  
 
     histories = {}
 
@@ -83,6 +99,16 @@ if __name__ == '__main__':
             num_classes=1,
             activation='relu'
         ).to(device)
+        # functional version of the model
+        fmodel, params = make_functional(model)
+        # get learning rate scaling factor
+        K_emp = empirical_ntk(fmodel, params, train_inputs, train_inputs)[..., 0, 0]
+        with torch.no_grad():
+            max_eigv = torch.linalg.eigvalsh(K_emp).max().item()
+        lr_scale = args.train_size / max_eigv
+        # free memory
+        del K_emp
+        torch.cuda.empty_cache()
 
         params = {'batch_size' : B}
         # make schedule
@@ -91,7 +117,7 @@ if __name__ == '__main__':
             params['momentum'] = momentum
         # make optimizer
         if args.opt == 'sgd':
-            optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+            optimizer = torch.optim.SGD(model.parameters(), lr=lr_scale * lr, momentum=momentum)
 
         print(format_params(params))
         history = train(
