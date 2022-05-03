@@ -23,7 +23,7 @@ class SGD(Optimizer):
         # get grad
         g_f = K[:, batch_idx] @ d_f[batch_idx] / B
         # momentum step
-        if beta > 0.0:
+        if beta != 0.0:
             p_f = g_f + beta * p_f
             # update momentum
             state['p_f'] = p_f

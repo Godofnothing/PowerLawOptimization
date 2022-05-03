@@ -12,7 +12,7 @@ def train_full_SGD(n_steps, state, K, alpha_fn, beta_fn, batch_fn):
         # get gamma
         gamma = (N - batch_size) / (N - 1) / batch_size
         # get interaction term
-        interaction_term = (gamma * alpha ** 2) * K @ torch.diag(C) @ K
+        interaction_term = (gamma * alpha ** 2) * N * (K @ (torch.diag(C)[:, None] * K))
         # aux computations
         KC, KJ, KCK = K @ C, K @ J, K @ C @ K
         common_term = interaction_term - alpha * beta * (KJ + KJ.T) + \
