@@ -21,6 +21,9 @@ def NTK_2_layer(X, sigma_w=1, sigma_b=1):
     Sigma_2 = (sigma_w ** 2) * (Theta_1 * J_0 + J_1)
     Theta_2 = Sigma_2
 
+    # symmetrize (since there can be issues in numerics)
+    Theta2 = 0.5 * (Theta_2 + Theta_2.T)
+
     return Theta_2
 
 
@@ -40,6 +43,7 @@ def generate_mnist_ntk_data(size: int, data_root: str = './data', normalize_ntk:
     # normalize
     X_mean, X_std = X.mean(), X.std()
     X = (X - X_mean) / X_std
+    y = (y - y.mean()) / y.std()
     # get NTK
     K = NTK_2_layer(X)
     if normalize_ntk:

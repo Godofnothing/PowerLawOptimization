@@ -4,7 +4,7 @@ import argparse
 import itertools
 
 from training import train_linearized
-from datasets import generate_synthetic_data, generate_mnist_ntk_data
+from datasets import generate_synthetic_data, generate_mnist_ntk_data, load_kernel_and_err
 from optim import SGD, Adam
 from schedules import JacobiScheduleA, JacobiScheduleB
 
@@ -12,8 +12,10 @@ from schedules import JacobiScheduleA, JacobiScheduleB
 def parse_args():
     parser = argparse.ArgumentParser('Training of synthetic power law data', add_help=False)
     # Data params
-    parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist'], type=str)
-    parser.add_argument('--data-root', default='./data', type=str)
+    parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist', 'cifar10'], type=str)
+    parser.add_argument('--from_saved', action='store_true')
+    parser.add_argument('--ntk_model', default='', type='str')
+    parser.add_argument('--data_root', default='./data', type=str)
     parser.add_argument('--N', default=1000, type=int)
     parser.add_argument('--nu', default=1.0, type=float)
     parser.add_argument('--kappa', default=1.0, type=float)
@@ -76,12 +78,15 @@ if __name__ == '__main__':
     else:
         aggregator = itertools.product
 
-    if args.dataset == 'synthetic':
-        # generate data
-        K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu, lambda_min=args.lambda_min)
-    elif args.dataset == 'mnist':
-        # generate data
-        K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)
+    if args.from_saved:
+        K, d_f = load_kernel_and_err(data_root=args.data_root, model=args.ntk_model, dataset=args.dataset)
+    else:
+        if args.dataset == 'synthetic':
+            # generate data
+            K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu, lambda_min=args.lambda_min)
+        elif args.dataset == 'mnist':
+            # generate data
+            K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)
     K, d_f = K.to(device), d_f.to(device)
     # make experiment dir if needed
     os.makedirs(f'{args.save_dir}', exist_ok=True)

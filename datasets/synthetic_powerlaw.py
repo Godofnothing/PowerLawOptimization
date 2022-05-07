@@ -10,8 +10,8 @@ def generate_synthetic_data(size: int, kappa: float = 1.0, nu: float = 1.0, lamb
     # create NTK matrix
     K = size * U.T @ (spec[:, None] * U)
     # create init error
-    coef = torch.arange(1, size+1) ** (-(kappa+1) / 2)
-    coef /= (2.0 * (coef ** 2).sum())
-    d_f = math.sqrt(2 * size) * (U.T @ coef)
+    coef  = torch.arange(1, size+1) ** (-(kappa+1) / 2)
+    coef *= (math.sqrt(2 * size) / torch.linalg.norm(coef))
+    d_f = U.T @ coef
     return K, d_f
     

@@ -5,15 +5,17 @@ import itertools
 
 from copy import deepcopy
 from training import train_mean_field_SGD
-from datasets import generate_synthetic_data, generate_mnist_ntk_data
+from datasets import generate_synthetic_data, generate_mnist_ntk_data, load_kernel_and_err
 from schedules import JacobiScheduleA, JacobiScheduleB
 
 
 def parse_args():
     parser = argparse.ArgumentParser('Training of synthetic power law data', add_help=False)
     # Data params
-    parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist'], type=str)
-    parser.add_argument('--data-root', default='./data', type=str)
+    parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist', 'cifar10'], type=str)
+    parser.add_argument('--from_saved', action='store_true')
+    parser.add_argument('--ntk_model', default='', type='str')
+    parser.add_argument('--data_root', default='./data', type=str)
     parser.add_argument('--N', default=1000, type=int)
     parser.add_argument('--nu', default=1.0, type=float)
     parser.add_argument('--kappa', default=1.0, type=float)
@@ -57,25 +59,31 @@ if __name__ == '__main__':
         if len(args.batch_size) > 1:
             assert len(args.batch_size) == n_iters
         else:
-            args.batch_size = (args.batch_size, ) * n_iters
+            args.batch_size = args.batch_size * n_iters
         if len(args.lr) > 1:
             assert len(args.lr) == n_iters
         else:
-            args.lr = (args.lr, ) * n_iters
+            args.lr = args.lr * n_iters
         if len(args.momentum) > 1:
             assert len(args.momentum) == n_iters
         else:
-            args.momentum = (args.momentum, ) * n_iters
+            args.momentum = args.momentum  * n_iters
+        args.a = args.a * n_iters
+        args.b = args.b * n_iters
 
         aggregator = zip
     else:
         aggregator = itertools.product
-    if args.dataset == 'synthetic':
-        # generate data
-        K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu, lambda_min=args.lambda_min)
-    elif args.dataset == 'mnist':
-        # generate data
-        K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)
+        
+    if args.from_saved:
+        K, d_f = load_kernel_and_err(data_root=args.data_root, model=args.ntk_model, dataset=args.dataset)
+    else:
+        if args.dataset == 'synthetic':
+            # generate data
+            K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu, lambda_min=args.lambda_min)
+        elif args.dataset == 'mnist':
+            # generate data
+            K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)
     K, d_f = K.to(device), d_f.to(device)
     # get normalized spectrum
     lambda_f, U = torch.linalg.eigh(K)
@@ -88,7 +96,7 @@ if __name__ == '__main__':
 
     loss_curves = {}
 
-    for B, lr, momentum, a, b in itertools.product(
+    for B, lr, momentum, a, b in aggregator(
         args.batch_size, args.lr, args.momentum, args.a, args.b
     ):
         params = {'batch_size' : B}
