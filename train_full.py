@@ -15,7 +15,7 @@ def parse_args():
     # Data params
     parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist', 'cifar10'], type=str)
     parser.add_argument('--from_saved', action='store_true')
-    parser.add_argument('--ntk_model', default='', type='str')
+    parser.add_argument('--ntk_model', default='', type=str)
     parser.add_argument('--data_root', default='./data', type=str)
     parser.add_argument('--N', default=1000, type=int)
     parser.add_argument('--nu', default=1.0, type=float)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         batch_fn = lambda step: B
         # make initial state
         state = {'C' : deepcopy(C), 'J': torch.zeros_like(C), 'P': torch.zeros_like(C)}
-        print(format_params(params))
+        print(format_params(params), flush=True)
         state, loss_curve = train_full_SGD(args.n_steps, state, K, alpha_fn, beta_fn, batch_fn)
         # update dict with loss curves
         loss_curves[tuple(params.values())] = loss_curve

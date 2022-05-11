@@ -5,7 +5,8 @@ import itertools
 
 from copy import deepcopy
 from training import train_mean_field_SGD
-from datasets import generate_synthetic_data, generate_mnist_ntk_data, load_kernel_and_err
+from datasets import generate_synthetic_data, generate_mnist_ntk_data, \
+    generate_cifar10_ntk_data, load_kernel_and_err
 from schedules import JacobiScheduleA, JacobiScheduleB
 
 
@@ -14,7 +15,7 @@ def parse_args():
     # Data params
     parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist', 'cifar10'], type=str)
     parser.add_argument('--from_saved', action='store_true')
-    parser.add_argument('--ntk_model', default='', type='str')
+    parser.add_argument('--ntk_model', default='', type=str)
     parser.add_argument('--data_root', default='./data', type=str)
     parser.add_argument('--N', default=1000, type=int)
     parser.add_argument('--nu', default=1.0, type=float)
@@ -84,6 +85,9 @@ if __name__ == '__main__':
         elif args.dataset == 'mnist':
             # generate data
             K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)
+        elif args.dataset == 'cifar10':
+            # generate data
+            K, d_f = generate_cifar10_ntk_data(size=args.N, data_root=args.data_root)
     K, d_f = K.to(device), d_f.to(device)
     # get normalized spectrum
     lambda_f, U = torch.linalg.eigh(K)
@@ -115,7 +119,7 @@ if __name__ == '__main__':
         batch_fn = lambda step: B
         # make initial state
         state = {'C' : deepcopy(C), 'J': torch.zeros_like(C), 'P': torch.zeros_like(C)}
-        print(format_params(params))
+        print(format_params(params), flush=True)
         state, loss_curve = train_mean_field_SGD(args.n_steps, state, lambda_f, alpha_fn, beta_fn, batch_fn)
         # update dict with loss curves
         loss_curves[tuple(params.values())] = loss_curve

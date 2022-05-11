@@ -4,7 +4,8 @@ import argparse
 import itertools
 
 from training import train_linearized
-from datasets import generate_synthetic_data, generate_mnist_ntk_data, load_kernel_and_err
+from datasets import generate_synthetic_data, generate_mnist_ntk_data, \
+    generate_cifar10_ntk_data, load_kernel_and_err
 from optim import SGD, Adam
 from schedules import JacobiScheduleA, JacobiScheduleB
 
@@ -14,7 +15,7 @@ def parse_args():
     # Data params
     parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist', 'cifar10'], type=str)
     parser.add_argument('--from_saved', action='store_true')
-    parser.add_argument('--ntk_model', default='', type='str')
+    parser.add_argument('--ntk_model', default='', type=str)
     parser.add_argument('--data_root', default='./data', type=str)
     parser.add_argument('--N', default=1000, type=int)
     parser.add_argument('--nu', default=1.0, type=float)
@@ -87,6 +88,9 @@ if __name__ == '__main__':
         elif args.dataset == 'mnist':
             # generate data
             K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)
+        elif args.dataset == 'cifar10':
+            # generate data
+            K, d_f = generate_cifar10_ntk_data(size=args.N, data_root=args.data_root)
     K, d_f = K.to(device), d_f.to(device)
     # make experiment dir if needed
     os.makedirs(f'{args.save_dir}', exist_ok=True)
@@ -124,7 +128,7 @@ if __name__ == '__main__':
             v_f = torch.zeros(args.N, dtype=torch.float32, device=device) 
             state['v_f'] = v_f
 
-        print(format_params(params))
+        print(format_params(params), flush=True)
         state, loss_curve = train_linearized(optimizer, state, K, n_steps=args.n_steps, batch_size=B)
         # update dict with loss curves
         loss_curves[tuple(params.values())] = loss_curve

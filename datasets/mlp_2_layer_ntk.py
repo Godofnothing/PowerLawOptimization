@@ -1,6 +1,6 @@
 import torch 
 
-from torchvision.datasets import MNIST
+from torchvision.datasets import MNIST, CIFAR10
 from sklearn.model_selection import train_test_split
 
 
@@ -32,7 +32,7 @@ def generate_mnist_ntk_data(size: int, data_root: str = './data', normalize_ntk:
     train_dataset = MNIST(root=data_root, train=True, download=True)
     # get subset of uniformly distributed between classes digits
     train_ids, *other = train_test_split(
-        range(60000), 
+        range(len(train_dataset)), 
         stratify=train_dataset.targets,
         shuffle=True, 
         train_size=size
@@ -40,6 +40,33 @@ def generate_mnist_ntk_data(size: int, data_root: str = './data', normalize_ntk:
     # select samples
     X = train_dataset.data[train_ids].reshape(-1, 28 * 28).to(torch.float32)
     y = train_dataset.targets[train_ids].to(torch.float32)
+    # normalize
+    X_mean, X_std = X.mean(), X.std()
+    X = (X - X_mean) / X_std
+    y = (y - y.mean()) / y.std()
+    # get NTK
+    K = NTK_2_layer(X)
+    if normalize_ntk:
+        # renormalize NTK
+        mult_factor = size / torch.linalg.eigvalsh(K).max()
+        K *= mult_factor
+    # return data
+    return K, y
+
+
+def generate_cifar10_ntk_data(size: int, data_root: str = './data', normalize_ntk: bool = True):
+    # get dataset
+    train_dataset = CIFAR10(root=data_root, train=True, download=True)
+    # get subset of uniformly distributed between classes digits
+    train_ids, *other = train_test_split(
+        range(len(train_dataset)), 
+        stratify=train_dataset.targets,
+        shuffle=True, 
+        train_size=size
+    )
+    # select samples
+    X = torch.tensor(train_dataset.data, dtype=torch.float32).data[train_ids].reshape(-1, 3 * 32 * 32)
+    y = torch.tensor(train_dataset.targets, dtype=torch.float32)[train_ids]
     # normalize
     X_mean, X_std = X.mean(), X.std()
     X = (X - X_mean) / X_std
