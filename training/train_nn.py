@@ -54,6 +54,13 @@ def train(
     verbose: bool = False
 ):
     history = {'train/loss': [], 'train/acc': [], 'val/loss': [], 'val/acc': []}
+    # add train and val loss before training
+    train_loss, train_acc = val_step(model, inputs, targets)
+    history['train/loss'].append(train_loss.item())
+    history['train/acc'].append(train_acc.item())
+    val_loss, val_acc = val_step(model, val_inputs, val_targets)
+    history['val/loss'].append(val_loss.item())
+    history['val/acc'].append(val_acc.item())
     # create all ids
     all_idx = torch.arange(len(inputs))
     for step in range(n_steps):

@@ -31,6 +31,9 @@ def parse_args():
     parser.add_argument('--n_steps', default=10000, type=int)
     parser.add_argument('--batch_size', nargs='+', default=[10], type=int)
     parser.add_argument('--workers', default=8, type=int)
+    # Whether to track diag err
+    parser.add_argument('--track_diag_err', action='store_true')
+    parser.add_argument('--track_freq', default=100, type=int)
     # Iteration type
     parser.add_argument('--aggr_type', default='prod', choices=['prod', 'zip'], type=str)
     # Save params
@@ -99,6 +102,7 @@ if __name__ == '__main__':
     os.makedirs(f'{args.save_dir}', exist_ok=True)
 
     loss_curves = {}
+    diag_errs = {}
 
     for B, lr, momentum, a, b in aggregator(
         args.batch_size, args.lr, args.momentum, args.a, args.b
@@ -120,10 +124,17 @@ if __name__ == '__main__':
         # make initial state
         state = {'C' : deepcopy(C), 'J': torch.zeros_like(C), 'P': torch.zeros_like(C)}
         print(format_params(params), flush=True)
-        state, loss_curve = train_mean_field_SGD(args.n_steps, state, lambda_f, alpha_fn, beta_fn, batch_fn)
+        state, loss_curve, Cs = train_mean_field_SGD(
+            args.n_steps, state, lambda_f, alpha_fn, beta_fn, batch_fn,  
+            track_diag_err=args.track_diag_err, track_freq=args.track_freq
+        )
         # update dict with loss curves
         loss_curves[tuple(params.values())] = loss_curve
+        if args.track_diag_err:
+            diag_errs[tuple(params.values())] = Cs
 
     print('Training completed!')
     # save data
     torch.save(loss_curves, f'{args.save_dir}/loss_curves.pth')
+    if args.track_diag_err:
+        torch.save(diag_errs, f'{args.save_dir}/diag_errs.pth')
