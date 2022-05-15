@@ -2,13 +2,14 @@ import torch
 
 
 @torch.no_grad()
-def train_mean_field_SGD(
+def train_approx(
     n_steps, 
     state, 
     lambda_f, 
     alpha_fn, 
     beta_fn, 
     batch_fn, 
+    approx='mean_field',
     track_diag_err = False,
     track_freq = 1
 ):
@@ -27,7 +28,12 @@ def train_mean_field_SGD(
         # get gamma
         gamma = (N - batch_size) / (N - 1) / batch_size
         # get interaction term
-        interaction_term = gamma * (alpha * lambda_f) ** 2 * (C.sum() - C)
+        if approx == 'mean_field':
+            interaction_term = gamma * (alpha * lambda_f) ** 2 * (C.sum() - C)
+        elif approx == 'gauss':
+            interaction_term = gamma * (alpha * lambda_f) ** 2 * (C.sum() + C)
+        else:
+            raise ValueError("Unknown approximation")
         # get common term
         common_term = (alpha * lambda_f) ** 2 * C - 2 * beta * alpha * lambda_f * J  \
             + beta ** 2 * P + interaction_term

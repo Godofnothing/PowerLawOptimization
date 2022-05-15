@@ -58,9 +58,10 @@ def train(
     train_loss, train_acc = val_step(model, inputs, targets)
     history['train/loss'].append(train_loss.item())
     history['train/acc'].append(train_acc.item())
-    val_loss, val_acc = val_step(model, val_inputs, val_targets)
-    history['val/loss'].append(val_loss.item())
-    history['val/acc'].append(val_acc.item())
+    if val_inputs is not None:
+        val_loss, val_acc = val_step(model, val_inputs, val_targets)
+        history['val/loss'].append(val_loss.item())
+        history['val/acc'].append(val_acc.item())
     # create all ids
     all_idx = torch.arange(len(inputs))
     for step in range(n_steps):
@@ -74,7 +75,7 @@ def train(
         # update history
         history['train/loss'].append(train_loss.item())
         history['train/acc'].append(train_acc.item())
-        if step % val_frequency == 0:
+        if step % val_frequency == 0 and val_inputs is not None:
             # evaluate on whole test
             val_loss, val_acc = val_step(model, val_inputs, val_targets)
             history['val/loss'].append(val_loss.item())
@@ -86,3 +87,4 @@ def train(
             print(f"{'Train':>5} Loss: {train_loss:.4f} Acc: {train_acc:.4f}")
     
     return history
+    
