@@ -33,7 +33,8 @@ def empirical_ntk(fnet_single, params, x1, x2):
 def parse_args():
     parser = argparse.ArgumentParser('Training in 4 regimes', add_help=False)
     # Data params
-    parser.add_argument('--dataset', default='synthetic', choices=['mnist', 'cifar10'], type=str)
+    parser.add_argument('--dataset', default='mnist', 
+                        choices=['mnist', 'cifar10', 'olivetti_faces', 'digits', 'bike_sharing', 'sgemm_product'], type=str)
     parser.add_argument('--data_root', default='./data', type=str)
     parser.add_argument('--N', default=1000, type=int)
     # Model
@@ -46,6 +47,8 @@ def parse_args():
     parser.add_argument('--batch_size', nargs='+', default=[10], type=int)
     parser.add_argument('--workers', default=8, type=int)
     parser.add_argument('--seed', default=42, type=int)
+    # Number of runs
+    parser.add_argument('--workers', default=8, type=int)
     # Iteration type
     parser.add_argument('--aggr_type', default='prod', choices=['prod', 'zip'], type=str)
     # Save params

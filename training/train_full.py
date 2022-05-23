@@ -2,12 +2,16 @@ import torch
 
 
 @torch.no_grad()
-def train_full_SGD(n_steps, state, K, alpha_fn, beta_fn, batch_fn):
+def train_full(n_steps, state, K, alpha_fn, beta_fn, batch_fn):
     N = len(K)
-    loss_curve = torch.zeros(n_steps)
+    loss_curve = torch.zeros(n_steps + 1)
     C, J, P = state['C'], state['J'], state['P'] 
+
+    # add loss on 0th iteration
+    loss = torch.trace(C).cpu() / (2 * N)
+    loss_curve[0] = loss.item()
     
-    for step in range(n_steps):
+    for step in range(1, n_steps + 1):
         alpha, beta, batch_size = alpha_fn(step), beta_fn(step), batch_fn(step)
         # get gamma
         gamma = (N - batch_size) / (N - 1) / batch_size
@@ -28,3 +32,4 @@ def train_full_SGD(n_steps, state, K, alpha_fn, beta_fn, batch_fn):
     state['C'], state['J'], state['P'] = C, J, P
             
     return state, loss_curve
+    
