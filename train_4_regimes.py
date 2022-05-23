@@ -9,8 +9,8 @@ warnings.simplefilter('ignore')
 from copy import deepcopy
 from functorch import make_functional, vmap, jacrev
 
-from training import train_linearized, train_approx, train
-from datasets import get_image_dataset
+from training import train_linearized, train_spectral_diagonal, train
+from datasets import get_image_dataset, get_uci_data, get_sklearn_data
 from models.mlp import NTKTwoLayerMLP
 from optim import SGD
 
@@ -89,9 +89,15 @@ if __name__ == '__main__':
     else:
         aggregator = itertools.product  
 
-
-    train_inputs, train_targets, *dummy = \
-        get_image_dataset(dataset=args.dataset, N=args.N, data_root=args.data_root, seed=args.seed, device=device)
+    if args.dataset in ['olivetti_faces', 'digits']:
+        train_inputs, train_targets, *dummy = \
+            get_sklearn_data(dataset=args.dataset, N=args.N, data_root=args.data_root, seed=args.seed, device=device)
+    elif args.dataset in ['bike_sharing', 'sgemm_product']:
+         train_inputs, train_targets, *dummy = \
+             get_uci_data(dataset=args.dataset, N=args.N, data_root=args.data_root, seed=args.seed, device=device)
+    else:
+        train_inputs, train_targets, *dummy = \
+            get_image_dataset(dataset=args.dataset, N=args.N, data_root=args.data_root, seed=args.seed, device=device)
     # make experiment dir if needed
     os.makedirs(f'{args.save_dir}', exist_ok=True)
 
@@ -99,7 +105,7 @@ if __name__ == '__main__':
 
     # init model note that only 1 class since we predict single number)
     model = NTKTwoLayerMLP(
-        in_dim=784 if args.dataset == 'mnist' else 3072, 
+        in_dim=train_inputs.shape[-1], 
         hidden_dim=args.hidden_dim, 
         num_classes=1,
         activation='relu'
@@ -152,18 +158,18 @@ if __name__ == '__main__':
         ### Train Mean Field
 
         state = {'C' : deepcopy(c_diag), 'J': torch.zeros_like(c_diag), 'P': torch.zeros_like(c_diag)}
-        state, loss_curve, _ = train_approx(
+        state, loss_curve, _ = train_spectral_diagonal(
             args.n_steps, state, eigv, alpha_fn, beta_fn, batch_fn,  
-            approx='mean_field', track_diag_err=False, 
+            tau=1.0, track_diag_err=False, 
         )
         loss_curves_params["mean_field"] = loss_curve
 
         ### Train Gauss
 
         state = {'C' : deepcopy(c_diag), 'J': torch.zeros_like(c_diag), 'P': torch.zeros_like(c_diag)}
-        state, loss_curve, _ = train_approx(
+        state, loss_curve, _ = train_spectral_diagonal(
             args.n_steps, state, eigv, alpha_fn, beta_fn, batch_fn,  
-            approx='gauss', track_diag_err=False, 
+            tau=-1.0, track_diag_err=False, 
         )
         loss_curves_params["gauss"] = loss_curve
 

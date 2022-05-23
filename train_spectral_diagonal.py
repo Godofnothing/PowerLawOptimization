@@ -1,19 +1,20 @@
+from email.policy import default
 import os
 import torch
 import argparse
 import itertools
 
 from copy import deepcopy
-from training import train_approx
+from training import train_spectral_diagonal
 from datasets import generate_synthetic_data, generate_mnist_ntk_data, \
-    generate_cifar10_ntk_data, load_kernel_and_err
+    generate_cifar10_ntk_data, generate_tox21_data,load_kernel_and_err
 from schedules import JacobiScheduleA, JacobiScheduleB
 
 
 def parse_args():
     parser = argparse.ArgumentParser('Training of synthetic power law data', add_help=False)
     # Approx type
-    parser.add_argument('--approx', default='mean_field', choices=['mean_field', 'gauss'], type=str)
+    parser.add_argument('--tau', default=1.0, type=float)
     # Data params
     parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist', 'cifar10'], type=str)
     parser.add_argument('--from_saved', action='store_true')
@@ -23,6 +24,7 @@ def parse_args():
     parser.add_argument('--nu', default=1.0, type=float)
     parser.add_argument('--kappa', default=1.0, type=float)
     parser.add_argument('--lambda_min', default=0.0, type=float)
+    parser.add_argument('--task', default=0, type=int, help='Task for Tox21')
     # Optimizer
     parser.add_argument('--sched', default='constant', type=str)
     parser.add_argument('--lr', nargs='+', default=[1.0], type=float)
@@ -126,9 +128,9 @@ if __name__ == '__main__':
         # make initial state
         state = {'C' : deepcopy(C), 'J': torch.zeros_like(C), 'P': torch.zeros_like(C)}
         print(format_params(params), flush=True)
-        state, loss_curve, Cs = train_approx(
+        state, loss_curve, Cs = train_spectral_diagonal(
             args.n_steps, state, lambda_f, alpha_fn, beta_fn, batch_fn,  
-            track_diag_err=args.track_diag_err, track_freq=args.track_freq
+            tau=args.tau, track_diag_err=args.track_diag_err, track_freq=args.track_freq
         )
         # update dict with loss curves
         loss_curves[tuple(params.values())] = loss_curve

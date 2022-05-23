@@ -2,14 +2,14 @@ import torch
 
 
 @torch.no_grad()
-def train_approx(
+def train_spectral_diagonal(
     n_steps, 
     state, 
     lambda_f, 
     alpha_fn, 
     beta_fn, 
     batch_fn, 
-    approx='mean_field',
+    tau: float = 1.0,
     track_diag_err = False,
     track_freq = 1
 ):
@@ -27,13 +27,7 @@ def train_approx(
         alpha, beta, batch_size = alpha_fn(step), beta_fn(step), batch_fn(step)
         # get gamma
         gamma = (N - batch_size) / (N - 1) / batch_size
-        # get interaction term
-        if approx == 'mean_field':
-            interaction_term = gamma * (alpha * lambda_f) ** 2 * (C.sum() - C)
-        elif approx == 'gauss':
-            interaction_term = gamma * (alpha * lambda_f) ** 2 * (C.sum() + C)
-        else:
-            raise ValueError("Unknown approximation")
+        interaction_term = gamma * (alpha * lambda_f) ** 2 * (C.sum() - tau * C)
         # get common term
         common_term = (alpha * lambda_f) ** 2 * C - 2 * beta * alpha * lambda_f * J  \
             + beta ** 2 * P + interaction_term

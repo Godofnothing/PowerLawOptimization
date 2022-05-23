@@ -5,7 +5,7 @@ import itertools
 
 from training import train_linearized
 from datasets import generate_synthetic_data, generate_mnist_ntk_data, \
-    generate_cifar10_ntk_data, load_kernel_and_err
+    generate_cifar10_ntk_data, generate_tox21_data,load_kernel_and_err
 from optim import SGD, Adam
 from schedules import JacobiScheduleA, JacobiScheduleB
 
@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument('--nu', default=1.0, type=float)
     parser.add_argument('--kappa', default=1.0, type=float)
     parser.add_argument('--lambda_min', default=0.0, type=float)
+    parser.add_argument('--task', default=0, type=int, help='Task for Tox21')
     # Optimizer
     parser.add_argument('--opt', default='sgd', type=str)
     parser.add_argument('--sched', default='constant', type=str)
