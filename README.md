@@ -1,11 +1,11 @@
 ### Description
 ---
 
-This repository accompanies the NeurIPS 2022 paper 
+This repository accompanies the NeurIPS 2022 submission
 
-*"A view of mini-batch SGD via generating functions:
+"*A view of mini-batch SGD via generating functions:
 conditions of convergence, phase transitions, benefit
-from negative momenta".*
+from negative momenta.*"
 
  ![Different regimes on mnist](images/loss_curves_mnist.png)
 
@@ -34,13 +34,13 @@ Notebooks are located in `./notebooks` directory
 BudgetIndependence.ipynb - for plotting the results of experiments on budget indepence
 RegimeComparison.ipynb - comparsion with different regimes mentioned in the paper
 RegimeComparisonSerial.ipynb - comparsion with running of series of runs for sampling
-SGD_generating_funcs.ipynb - notebooks with the symbolic computations used in the work (we suggest to run in on colab)
+SGD_generating_funcs.ipynb - notebooks with the symbolic computations used in the work (we suggest to run it on colab)
 ```
 
 ### Environment
 ---
 
-All experiments were run in the `conda` environment with the following versions of packages install 
+All experiments were run in the `conda` environment with the following versions of packages installed 
 
 ```
 pytorch == 1.11.0
