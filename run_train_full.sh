@@ -1,22 +1,24 @@
 #!/bin/bash
 
+EXP_DIR='./output'
+EXP_NAME=''
+DATASET=mnist
+
 python train_full.py \
     \
-    --dataset mnist \
+    --dataset ${DATASET} \
     \
-    --N 1000 \
-    --nu 1.5 \
-    --kappa 3.0 \
+    --N # set N \
+    --nu # set nu \
+    --kappa # set kappa \
     \
     --sched constant \
-    --lr 0.00 0.03 0.06 0.09 0.12 0.15 0.18 0.21 0.24 0.28 0.31 0.34 0.37 0.40 0.43 0.46 0.49 0.52 0.55 0.58 0.61 0.64 0.67 0.70 0.73 0.77 0.80 0.83 0.86 0.89 0.92 0.95 0.98 1.01 1.04 1.07 1.10 1.13 1.16 1.19 1.22 1.26 1.29 1.32 1.35 1.38 1.41 1.44 1.47 1.50 \
-    --momentum -1.00 -0.96 -0.92 -0.88 -0.84 -0.80 -0.76 -0.71 -0.67 -0.63 -0.59 -0.55 -0.51 -0.47 -0.43 -0.39 -0.35 -0.31 -0.27 -0.22 -0.18 -0.14 -0.10 -0.06 -0.02 0.02 0.06 0.10 0.14 0.18 0.22 0.27 0.31 0.35 0.39 0.43 0.47 0.51 0.55 0.59 0.63 0.67 0.71 0.76 0.80 0.84 0.88 0.92 0.96 1.00 \
-    --a 1.0 \
-    --b 1.0 \
+    --lr # set learning rates \
+    --momentum # set momentum \
     \
-    --n_steps 10000 \
-    --batch_size 1 \
+    --n_steps # set number of steps \
+    --batch_size # set batch size \
     \
     --aggr_type prod \
     \
-    --save_dir output/full/check_full/N=1000/mnist \
+    --save_dir ${EXP_DIR}/full/${EXP_NAME}/N=1000/${DATASET} \
