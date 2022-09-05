@@ -1,7 +1,7 @@
 ### Description
 ---
 
-This repository accompanies the NeurIPS 2022 submission
+This repository accompanies the ICLR 2023 submission
 
 "*A view of mini-batch SGD via generating functions:
 conditions of convergence, phase transitions, benefit

@@ -5,6 +5,8 @@ import pandas as pd
 from torchvision.datasets import MNIST, CIFAR10
 from sklearn.datasets import load_digits, fetch_olivetti_faces
 from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
 
 
 def get_image_dataset(dataset='mnist', N: int =1000, data_root='./data', seed: int = 42, device='cpu'):
@@ -101,8 +103,10 @@ def get_uci_data(dataset='bike_sharing', N: int = 1000, data_root='./data', seed
     X_val = torch.tensor(X_val).to(torch.float32)
     y_val = torch.tensor(y_val).to(torch.float32)
     # normalize
-    X_mean, X_std = X_train.mean(), X_train.std()
-    y_mean, y_std = y_train.mean(), y_train.std()
+    X_mean, X_std = X_train.mean(axis=0), X_train.std(axis=0)
+    y_mean, y_std = y_train.mean(axis=0), y_train.std(axis=0)
     X_train, X_val = (X_train - X_mean) / X_std, (X_val - X_mean) / X_std
     y_train, y_val = (y_train - y_mean) / y_std, (y_val - y_mean) / y_std
     return X_train.to(device), y_train.to(device), X_val.to(device), y_val.to(device)
+
+    
