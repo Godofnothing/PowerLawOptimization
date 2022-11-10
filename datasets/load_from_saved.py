@@ -1,15 +1,12 @@
-import os
 import torch
-import numpy as np
 
 
-def load_kernel_and_err(data_root: str, model: str, dataset: str, normalize_ntk: bool = True):
-    # assert os.path.isdir('{data_root}/NT_kernels')
-    # assert os.path.isdir('{data_root}/NT_errors')
+def load_kernel_and_err(data_path: str, normalize_ntk: bool = True):
+    data = torch.load(data_path)
     # save kernel
-    K = torch.tensor(np.load(f'{data_root}/NT_kernels/{model}_{dataset}_label.npy'))
+    K = data['NTK_train_train']
     # save err vec
-    d_f = torch.tensor(np.load(f'{data_root}/NT_errors/{model}_{dataset}_label.npy'))
+    d_f = data['target_train_train']
     if normalize_ntk:
         # get kernel size
         N = K.shape[0]

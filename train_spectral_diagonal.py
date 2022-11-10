@@ -7,7 +7,7 @@ import itertools
 from copy import deepcopy
 from training import train_spectral_diagonal
 from datasets import generate_synthetic_data, generate_mnist_ntk_data, \
-    generate_cifar10_ntk_data 
+    generate_cifar10_ntk_data, load_kernel_and_err
 from schedules import JacobiScheduleA, JacobiScheduleB
 
 
@@ -18,13 +18,10 @@ def parse_args():
     # Data params
     parser.add_argument('--dataset', default='synthetic', choices=['synthetic', 'mnist', 'cifar10'], type=str)
     parser.add_argument('--from_saved', action='store_true')
-    parser.add_argument('--ntk_model', default='', type=str)
-    parser.add_argument('--data_root', default='./data', type=str)
+    parser.add_argument('--data_path', type=str, default='')
     parser.add_argument('--N', default=1000, type=int)
     parser.add_argument('--nu', default=1.0, type=float)
     parser.add_argument('--kappa', default=1.0, type=float)
-    parser.add_argument('--lambda_min', default=0.0, type=float)
-    parser.add_argument('--kappa_clamp', default=0, type=int)
     # Optimizer
     parser.add_argument('--sched', default='constant', type=str)
     parser.add_argument('--lr', nargs='+', default=[1.0], type=float)
@@ -84,11 +81,11 @@ if __name__ == '__main__':
         aggregator = itertools.product
         
     if args.from_saved:
-        K, d_f = load_kernel_and_err(data_root=args.data_root, model=args.ntk_model, dataset=args.dataset)
+        K, d_f = load_kernel_and_err(data_path=args.data_path)
     else:
         if args.dataset == 'synthetic':
             # generate data
-            K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu, lambda_min=args.lambda_min, kappa_clamp=args.kappa_clamp)
+            K, d_f = generate_synthetic_data(size=args.N, kappa=args.kappa, nu=args.nu)
         elif args.dataset == 'mnist':
             # generate data
             K, d_f = generate_mnist_ntk_data(size=args.N, data_root=args.data_root)

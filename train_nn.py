@@ -2,7 +2,9 @@ import os
 import torch
 import argparse
 import itertools
+import torch.nn as nn
 
+from torchvision import models
 from torchvision.datasets import MNIST, CIFAR10
 from sklearn.model_selection import train_test_split
 from functorch import make_functional, vmap, jacrev
@@ -32,6 +34,7 @@ def parse_args():
     parser.add_argument('--data-root', default='./data', type=str)
     parser.add_argument('--dataset', default='mnist', type=str)
     # Model
+    parser.add_argument('--model', default='mlp', type=str)
     parser.add_argument('--hidden_dim', default=1000, type=int)
     # Optimizer
     parser.add_argument('--opt', default='sgd', type=str)
@@ -109,10 +112,12 @@ if __name__ == '__main__':
         train_size=args.N
     )
     if args.dataset == 'mnist':
-        val_inputs  = val_dataset.data.reshape(-1, 28 * 28).to(torch.float32)
+        sample_shape = 28 * 28 if args.model == 'mlp' else (1, 28, 28)
+        val_inputs  = val_dataset.data.reshape(-1, *sample_shape).to(torch.float32)
         val_targets = val_dataset.targets.to(torch.float32)
     elif args.dataset == 'cifar10':
-        val_inputs  = torch.tensor(val_dataset.data.reshape(-1, 3 * 32 * 32), dtype=torch.float32)
+        sample_shape = 3 * 32 * 32 if args.model == 'mlp' else (3, 32, 32)
+        val_inputs  = torch.tensor(val_dataset.data.reshape(-1, *sample_shape), dtype=torch.float32)
         val_targets = torch.tensor(val_dataset.targets, dtype=torch.float32)
     val_inputs = (val_inputs - inputs_mean) / inputs_std
     # normalize targets as well
@@ -128,15 +133,29 @@ if __name__ == '__main__':
 
     for B, lr, momentum in aggregator(args.batch_size, args.lr, args.momentum):
         # init model (note that only 1 class since we predict single number)
-        model = NTKTwoLayerMLP(
-            in_dim=784 if args.dataset == 'mnist' else 3072, 
-            hidden_dim=args.hidden_dim, 
-            num_classes=1,
-            activation='relu'
-        ).to(device)
-        # functional version of the model
-        fmodel, params = make_functional(model)
+        if args.model == 'mlp':
+            model = NTKTwoLayerMLP(
+                in_dim=784 if args.dataset == 'mnist' else 3072, 
+                hidden_dim=args.hidden_dim, 
+                num_classes=1,
+                activation='relu'
+            ).to(device)
+        elif args.model.startswith('resnet'):
+            model = getattr(models, args.model)
+            model.fc == nn.Linear(model.fc.in_features, 1)
+        elif args.model.startswith('efficientnet'):
+            model = getattr(models, args.model)
+            model.classifier[1] = nn.Linear(model.classifier[1].in_features, 1)
+        elif args.model.startswith('mobilenet_v2'):
+            model = getattr(models, args.model)
+            model.classifier[1] = nn.Linear(model.classifier[1].in_features, 1)
+        else:
+            raise ValueError("Unknown model")
+            
+        # set manually lr_scale if not set
         if not args.lr_scale:
+            # functional version of the model
+            fmodel, params = make_functional(model)
             # get learning rate scaling factor
             K_emp = empirical_ntk(fmodel, params, train_inputs, train_inputs)[..., 0, 0]
             with torch.no_grad():
