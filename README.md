@@ -1,11 +1,14 @@
 ### Description
 ---
 
-This repository accompanies the ICLR 2023 submission
+This repository accompanies the ICLR 2023 poster
 
 "*A view of mini-batch SGD via generating functions:
 conditions of convergence, phase transitions, benefit
 from negative momenta.*"
+
+[[OpenReview]](https://openreview.net/forum?id=bzaPGEllsjE&referrer=%5Bthe%20profile%20of%20Denis%20Kuznedelev%5D(%2Fprofile%3Fid%3D~Denis_Kuznedelev1))
+[[arxiv]](https://arxiv.org/abs/2206.11124)
 
  ![Different regimes on mnist](images/loss_curves_mnist.png)
 
@@ -86,3 +89,15 @@ To run series of experiments for different configuration of parameters provide a
 ```
 By default if list of parameters is provided for each of these arguments experiments will be run with all possible combintations of these parameters. If one would like to run only a single run for a pair of these parameters provide explicitly flag `--aggr_type zip`. Note, that in this case lengths of arguments have to be equal to each other or to 1. 
 
+### Bibtex
+If this project is useful for you, please consider citing our paper :mega:
+```
+@inproceedings{
+velikanov2023a,
+title={A view of mini-batch {SGD} via generating functions: conditions of convergence, phase transitions,  benefit from negative momenta.},
+author={Maksim Velikanov and Denis Kuznedelev and Dmitry Yarotsky},
+booktitle={The Eleventh International Conference on Learning Representations },
+year={2023},
+url={https://openreview.net/forum?id=bzaPGEllsjE}
+}
+```
