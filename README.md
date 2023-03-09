@@ -3,9 +3,13 @@
 
 This repository accompanies the ICLR 2023 poster
 
-"*A view of mini-batch SGD via generating functions:
-conditions of convergence, phase transitions, benefit
-from negative momenta.*"
+
+> A view of mini-batch SGD via generating functions:
+> conditions of convergence, phase transitions, benefit
+> from negative momenta. <br>
+> M. Velikanov, D. Kuznedelev, D. Yarotsky
+
+
 
 [[OpenReview]](https://openreview.net/forum?id=bzaPGEllsjE&referrer=%5Bthe%20profile%20of%20Denis%20Kuznedelev%5D(%2Fprofile%3Fid%3D~Denis_Kuznedelev1))
 [[arxiv]](https://arxiv.org/abs/2206.11124)
